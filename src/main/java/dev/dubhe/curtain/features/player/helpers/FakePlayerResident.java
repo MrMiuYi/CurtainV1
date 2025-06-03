@@ -65,7 +65,7 @@ public class FakePlayerResident {
             for (Map.Entry<String, JsonElement> entry : fakePlayerList.entrySet()) {
                 FakePlayerResident.load(entry, server);
             }
-            file.delete();
+            //file.delete();
         }
     }
 
