@@ -105,4 +105,30 @@ public class FakePlayerResident {
                 ResourceKey.create(Registries.DIMENSION, new ResourceLocation(dimension)),
                 GameType.byName(gamemode), flying);
     }
+/**
+     * 手动保存所有假人状态到 fake_player.gca.json，不清空内存数据
+     */
+    public static void saveAll(MinecraftServer server) {
+        if (CurtainRules.fakePlayerResident) {
+            JsonObject fakePlayerList = new JsonObject();
+            FAKE_PLAYER_INVENTORY_MENU_MAP.forEach((player, fakePlayerInventoryContainer) -> {
+                if (!(player instanceof EntityPlayerMPFake)) return;
+                String username = player.getName().getString();
+                fakePlayerList.add(username, FakePlayerResident.save(player));
+            });
+            File file = server.getWorldPath(LevelResource.ROOT).resolve("fake_player.gca.json").toFile();
+            if (!file.isFile()) {
+                try {
+                    file.createNewFile();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            try (BufferedWriter bfw = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8)) {
+                bfw.write(new Gson().toJson(fakePlayerList));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }

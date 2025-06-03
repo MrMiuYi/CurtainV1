@@ -17,6 +17,7 @@ import dev.dubhe.curtain.features.player.patches.EntityPlayerMPFake;
 import dev.dubhe.curtain.utils.CommandHelper;
 import dev.dubhe.curtain.utils.Messenger;
 import net.minecraft.commands.CommandSourceStack;
+import java.util.Collections;
 import net.minecraft.commands.arguments.DimensionArgument;
 import net.minecraft.commands.arguments.coordinates.RotationArgument;
 import net.minecraft.commands.arguments.coordinates.Vec3Argument;
@@ -110,7 +111,8 @@ public class PlayerCommand {
                                                 )))
                                 ))
                         )
-                );
+                )
+                .then(literal("playersave").executes(PlayerCommand::playersave));
         dispatcher.register(literalargumentbuilder);
     }
 
@@ -121,7 +123,17 @@ public class PlayerCommand {
                 .then(literal("continuous").executes(c -> action(c, type, EntityPlayerActionPack.Action.continuous())))
                 .then(literal("interval").then(argument("ticks", IntegerArgumentType.integer(1))
                         .executes(c -> action(c, type, EntityPlayerActionPack.Action.interval(IntegerArgumentType.getInteger(c, "ticks"))))));
-    }
+        }
+
+/**
+ * /player playersave 命令实现：手动保存所有假人状态
+ */
+private static int playersave(CommandContext<CommandSourceStack> context) {
+    MinecraftServer server = context.getSource().getServer();
+    dev.dubhe.curtain.features.player.helpers.FakePlayerResident.saveAll(server);
+    Messenger.send(context.getSource(), Collections.singletonList(Messenger.c("§a假人状态已保存")));
+    return Command.SINGLE_SUCCESS;
+}
 
     private static LiteralArgumentBuilder<CommandSourceStack> makeDropCommand(String actionName, boolean dropAll) {
         return literal(actionName)
