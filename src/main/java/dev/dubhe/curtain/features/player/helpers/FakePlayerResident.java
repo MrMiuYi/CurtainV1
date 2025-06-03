@@ -26,28 +26,30 @@ import static dev.dubhe.curtain.features.player.menu.MenuHashMap.FAKE_PLAYER_INV
 
 public class FakePlayerResident {
     public static void onServerStop(MinecraftServer server) {
-        if (CurtainRules.fakePlayerResident) {
-            JsonObject fakePlayerList = new JsonObject();
-            FAKE_PLAYER_INVENTORY_MENU_MAP.forEach((player, fakePlayerInventoryContainer) -> {
-                if (!(player instanceof EntityPlayerMPFake)) return;
-                String username = player.getName().getString();
-                fakePlayerList.add(username, FakePlayerResident.save(player));
-            });
-            File file = server.getWorldPath(LevelResource.ROOT).resolve("fake_player.gca.json").toFile();
-            if (!file.isFile()) {
-                try {
-                    file.createNewFile();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            try (BufferedWriter bfw = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8)) {
-                bfw.write(new Gson().toJson(fakePlayerList));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        FAKE_PLAYER_INVENTORY_MENU_MAP.clear();
+        // if (CurtainRules.fakePlayerResident) {
+        //     JsonObject fakePlayerList = new JsonObject();
+        //     FAKE_PLAYER_INVENTORY_MENU_MAP.forEach((player, fakePlayerInventoryContainer) -> {
+        //         if (!(player instanceof EntityPlayerMPFake)) return;
+        //         String username = player.getName().getString();
+        //         fakePlayerList.add(username, FakePlayerResident.save(player));
+        //     });
+        //     File file = server.getWorldPath(LevelResource.ROOT).resolve("fake_player.gca.json").toFile();
+        //     if (!file.isFile()) {
+        //         try {
+        //             file.createNewFile();
+        //         } catch (IOException e) {
+        //             e.printStackTrace();
+        //         }
+        //     }
+        //     try (BufferedWriter bfw = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8)) {
+        //         bfw.write(new Gson().toJson(fakePlayerList));
+        //     } catch (IOException e) {
+        //         e.printStackTrace();
+        //     }
+        // }
+        // FAKE_PLAYER_INVENTORY_MENU_MAP.clear();
+        // 自动保存机制已禁用，保留方法以兼容调用
+        return;
     }
 
     public static void onServerStart(MinecraftServer server) {
