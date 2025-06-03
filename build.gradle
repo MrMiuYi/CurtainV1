@@ -1,6 +1,7 @@
 buildscript {
     repositories {
-        // These repositories are only for Gradle plugins, put any other repositories in the repository block further below
+        // These repositories are only for Gradle plugins, put any other repositories in the repository block further below.
+        //这些仓库仅适用于 Gradle 插件，请将任何其他仓库放在下面的仓库块中。
         maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
         mavenCentral()
     }
