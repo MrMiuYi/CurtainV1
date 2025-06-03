@@ -1,0 +1,117 @@
+name: Upload Release Asset
+on:
+  release:
+    types: [ published ]
+
+jobs:
+  changelog:
+    permissions: write-all
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.1.0
+
+      - name: "✏️ Generate release changelog"
+        uses: heinrichreimer/github-changelog-generator-action@v2.3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          output: CHANGELOG.MD
+
+      - name: Commit
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: update Changelog
+          file_pattern: "CHANGELOG.MD"
+          branch: 1.20.1
+          repository: .
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'
+
+      - name: Split changelog
+        run: python .github/workflows/scripts/split_changelog.py
+
+      - name: capture new log artifacts
+        uses: actions/upload-artifact@v3.1.1
+        with:
+          name: NEW_LOG.MD
+          path: NEW_LOG.MD
+
+
+  build:
+    permissions: write-all
+    needs:
+      - changelog
+    strategy:
+      matrix:
+        java: [ 17 ]
+        os: [ ubuntu-latest ]
+        branch: [ 1.20.1, 1.19.4, 1.19.2, 1.18.2, 1.16.5]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.1.0
+        with:
+          ref: ${{ matrix.branch }}
+
+      - name: validate gradle wrapper
+        uses: gradle/wrapper-validation-action@v1
+
+      - name: setup java ${{ matrix.java }}
+        uses: actions/setup-java@v3.6.0
+        with:
+          distribution: 'zulu'
+          java-version: ${{ matrix.java }}
+
+      - name: Setup cache
+        uses: actions/cache@v3.0.11
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+
+      - name: make gradle wrapper executable
+        if: ${{ runner.os != 'Windows' }}
+        run: chmod +x ./gradlew
+
+      - name: build
+        run: ./gradlew build
+
+      - name: Find correct JAR
+        id: find-jar
+        run: |
+          output="$(find build/libs/ ! -name "*-dev.jar" ! -name "*-sources.jar" -type f -printf "%f\n")"
+          echo "jarname=$output" >> $GITHUB_OUTPUT
+
+      - name: Upload Release Jar
+        uses: softprops/action-gh-release@v0.1.15
+        with:
+          files: build/libs/${{ steps.find-jar.outputs.jarname }}
+
+      - name: Download NEW_LOG.MD Artifact
+        uses: actions/download-artifact@v2.1.1
+        with:
+          name: NEW_LOG.MD
+
+      - name: publish mc mod
+        uses: Kir-Antipov/mc-publish@v3.2
+        with:
+          name: ${{ steps.find-jar.outputs.jarname }}
+          game-versions: |
+            ${{ matrix.branch }}
+          java: |
+            ${{ matrix.java }}
+
+          modrinth-id: 2Vw36Ezz
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+
+          curseforge-id: 845348
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+
+          files-primary: build/libs/${{ steps.find-jar.outputs.jarname }}
+          changelog-file: NEW_LOG.MD
+
