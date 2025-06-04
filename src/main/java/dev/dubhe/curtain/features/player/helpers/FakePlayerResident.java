@@ -112,6 +112,7 @@ public class FakePlayerResident {
      */
     public static void saveAll(MinecraftServer server) {
         if (CurtainRules.fakePlayerResident) {
+System.out.println("[FakePlayerResident] FAKE_PLAYER_INVENTORY_MENU_MAP size: " + FAKE_PLAYER_INVENTORY_MENU_MAP.size());
             JsonObject fakePlayerList = new JsonObject();
             FAKE_PLAYER_INVENTORY_MENU_MAP.forEach((player, fakePlayerInventoryContainer) -> {
                 if (!(player instanceof EntityPlayerMPFake)) return;
